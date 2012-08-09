@@ -277,8 +277,8 @@ static u16 tcp_select_window(struct sock *sk)
 	}
 
 	if (tp->mpc) {
-		mpcb_meta_tp(tp->mpcb)->rcv_wnd = new_win;
-		mpcb_meta_tp(tp->mpcb)->rcv_wup = mpcb_meta_tp(tp->mpcb)->rcv_nxt;
+		mptcp_meta_tp(tp)->rcv_wnd = new_win;
+		mptcp_meta_tp(tp)->rcv_wup = mptcp_meta_tp(tp)->rcv_nxt;
 	}
 
 	tp->rcv_wnd = new_win;
@@ -1644,7 +1644,7 @@ int tcp_mtu_probe(struct sock *sk)
 	int size_needed;
 	int copy;
 	int mss_now;
-	u32 snd_wnd = (tp->mpc) ? mpcb_meta_tp(tp->mpcb)->snd_wnd : tp->snd_wnd;
+	u32 snd_wnd = (tp->mpc) ? mptcp_meta_tp(tp)->snd_wnd : tp->snd_wnd;
 
 	/* Not currently probing/verifying,
 	 * not in recovery,
