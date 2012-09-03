@@ -1470,7 +1470,7 @@ static unsigned int tcp_snd_test(struct sock *sk, struct sk_buff *skb,
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 	unsigned int cwnd_quota;
-	struct tcp_sock *meta_tp = tp->mpc ? mpcb_meta_tp(tp->mpcb) : tp;
+	struct tcp_sock *meta_tp = tp->mpc ? mptcp_meta_tp(tp) : tp;
 
 	tcp_init_tso_segs(sk, skb, cur_mss);
 
