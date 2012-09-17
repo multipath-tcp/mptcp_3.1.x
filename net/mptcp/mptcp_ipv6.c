@@ -117,7 +117,7 @@ static int mptcp_v6v4_send_synack(struct sock *sk, struct request_sock *req,
 		__tcp_v6_send_check(skb, &treq->loc_addr, &treq->rmt_addr);
 
 		ipv6_addr_copy(&fl6.daddr, &treq->rmt_addr);
-		err = ip6_xmit(sk, skb, &fl6, NULL, 0);
+		err = ip6_xmit(sk, skb, &fl6, NULL);
 		err = net_xmit_eval(err);
 	}
 
