@@ -428,6 +428,7 @@ int mptcp_v6_add_raddress(struct multipath_options *mopt,
 	ipv6_addr_copy(&rem6->addr, addr);
 	rem6->port = port;
 	rem6->bitfield = 0;
+	rem6->retry_bitfield = 0;
 	rem6->id = id;
 	mopt->list_rcvd = 1;
 	mopt->rem6_bits |= (1 << i);
@@ -607,8 +608,8 @@ struct sock *mptcp_v6_search_req(const __be16 rport, const struct in6_addr *radd
  *
  * We are in user-context and meta-sock-lock is hold.
  */
-void mptcp_init6_subsockets(struct sock *meta_sk, const struct mptcp_loc6 *loc,
-			    struct mptcp_rem6 *rem)
+int mptcp_init6_subsockets(struct sock *meta_sk, const struct mptcp_loc6 *loc,
+			   struct mptcp_rem6 *rem)
 {
 	struct tcp_sock *tp;
 	struct sock *sk;
@@ -633,7 +634,7 @@ void mptcp_init6_subsockets(struct sock *meta_sk, const struct mptcp_loc6 *loc,
 	ret = inet6_create(sock_net(meta_sk), &sock, IPPROTO_TCP, 1);
 	if (unlikely(ret < 0)) {
 		mptcp_debug("%s inet6_create failed ret: %d\n", __func__, ret);
-		return;
+		return ret;
 	}
 
 	sk = sock.sk;
@@ -684,7 +685,7 @@ void mptcp_init6_subsockets(struct sock *meta_sk, const struct mptcp_loc6 *loc,
 	sk_set_socket(sk, meta_sk->sk_socket);
 	sk->sk_wq = meta_sk->sk_wq;
 
-	return;
+	return 0;
 
 error:
 	sock_orphan(sk);
@@ -694,7 +695,7 @@ error:
 	tcp_done(sk);
 	local_bh_enable();
 
-	return;
+	return ret;
 }
 
 struct mptcp_dad_data {
@@ -837,7 +838,7 @@ void mptcp_pm_addr6_event_handler(struct inet6_ifaddr *ifa, unsigned long event,
 		/* re-send addresses */
 		mptcp_v6_send_add_addr(i, mpcb);
 		/* re-evaluate paths */
-		mptcp_send_updatenotif(mpcb->meta_sk);
+		mptcp_create_subflows(mpcb->meta_sk);
 	}
 	return;
 found:
