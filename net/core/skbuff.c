@@ -428,6 +428,9 @@ static void skb_release_all(struct sk_buff *skb)
 
 void __kfree_skb(struct sk_buff *skb)
 {
+#ifdef CONFIG_MPTCP
+	BUG_ON(atomic_read(&skb->users) > 1);
+#endif
 	skb_release_all(skb);
 	kfree_skbmem(skb);
 }
@@ -557,6 +560,9 @@ static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 #endif
 #endif
 	new->vlan_tci		= old->vlan_tci;
+#ifdef CONFIG_MPTCP
+	new->path_mask          = old->path_mask;
+#endif
 
 	skb_copy_secmark(new, old);
 }
@@ -1119,8 +1125,11 @@ unsigned char *skb_push(struct sk_buff *skb, unsigned int len)
 {
 	skb->data -= len;
 	skb->len  += len;
-	if (unlikely(skb->data<skb->head))
+	if (unlikely(skb->data<skb->head)) {
 		skb_under_panic(skb, len, __builtin_return_address(0));
+		console_loglevel = 8;
+		BUG();
+	}
 	return skb->data;
 }
 EXPORT_SYMBOL(skb_push);
