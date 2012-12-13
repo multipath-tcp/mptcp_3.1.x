@@ -189,7 +189,7 @@ drop_and_free:
 static void mptcp_v4_join_request(struct mptcp_cb *mpcb, struct sk_buff *skb)
 {
 	struct tcp_options_received tmp_opt;
-	const u8 *hash_location;
+	u8 *hash_location;
 
 	tcp_clear_options(&tmp_opt);
 	tmp_opt.mss_clamp = TCP_MSS_DEFAULT;
